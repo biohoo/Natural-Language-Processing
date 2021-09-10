@@ -9,7 +9,7 @@ import nltk
 '''Stemming'''
 porter = nltk.stem.porter.PorterStemmer()
 
-print(porter.stem('running'))
+print(porter.stem('runner'))
 print(porter.stem('jumping'))
-print(porter.stem('fishing'))
+
 
