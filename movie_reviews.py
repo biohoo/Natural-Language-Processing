@@ -32,7 +32,9 @@ for w in movie_reviews.words():
 
 all_words = nltk.FreqDist(all_words)
 print('Most Common: ', all_words.most_common(15))
-print(all_words['ridiculous'], ' occurrences of ridiculous')
+
+test_word = 'fashionable'
+print(all_words[test_word], f' occurrences of {test_word}')
 
 #   Take the frequency distribution and return the first 3000 most common.
 word_features = list(all_words.keys())[:3000]
