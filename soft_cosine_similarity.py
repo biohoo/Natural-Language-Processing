@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
+
+
 print(gensim.__version__)
 #> '3.6.0'
 
@@ -63,3 +65,4 @@ for item in ax.get_xticklabels():
 # save figure
 plt.savefig('soft_matrix_scores.png', dpi=100)
 plt.show()
+

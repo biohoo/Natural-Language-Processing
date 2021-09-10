@@ -13,6 +13,10 @@ from sklearn.naive_bayes import MultinomialNB,BernoulliNB
 from sklearn.linear_model import LogisticRegression,SGDClassifier
 from sklearn.svm import SVC, LinearSVC, NuSVC
 
+from nltk.classify import ClassifierI
+from statistics import mode, StatisticsError
+from collections import Counter
+
 documents = [(list(movie_reviews.words(fileid)), category)
              for category in movie_reviews.categories()
              for fileid in movie_reviews.fileids(category)]
@@ -54,7 +58,7 @@ testing_set = featuresets[1900:]
 
 classifier = nltk.NaiveBayesClassifier.train(training_set)
 
-print("Classifier accuracy percent:",(nltk.classify.accuracy(classifier, testing_set))*100)
+print("Regular Naive Bayes accuracy percent:",(nltk.classify.accuracy(classifier, testing_set))*100)
 
 classifier.show_most_informative_features(15)
 
@@ -76,3 +80,47 @@ for name, wrapped_classifier in classifiers_dict.items():
     print(f'{name} percent: {(nltk.classify.accuracy(wrapped_classifier, testing_set))*100}')
     with open(f'{name}.pickle', 'wb') as f:
         pickle.dump(wrapped_classifier, f)
+
+
+class VoteClassifier(ClassifierI):
+    def __init__(self, *classifiers):
+        self._classifiers = classifiers
+
+    def classify(self, features):
+        votes = []
+        for c in self._classifiers:
+            v = c.classify(features)
+            votes.append(v)
+        try:
+            return mode(votes)
+        except StatisticsError as e:
+            c = Counter(votes)
+            return c.most_common()[0][0]
+
+    def confidence(self, features):
+        votes = []
+        for c in self._classifiers:
+            v = c.classify(features)
+            votes.append(v)
+
+        try:
+            choice_votes = votes.count(mode(votes))
+        except StatisticsError as e:
+            c = Counter(votes)
+            choice_votes = c.most_common()[0][0]
+
+        conf = choice_votes / len(votes)
+
+        return conf
+
+
+classifiers_list = [x for x in classifiers_dict.values()]
+
+voted_classifier = VoteClassifier(classifier,
+                                  *classifiers_list)    # "Classifier" above is the original naive bayes.  Rest are declared.
+
+print("voted_classifier accuracy percent:", (nltk.classify.accuracy(voted_classifier, testing_set))*100)
+
+for i in range(6):
+    print(f'Classification: {voted_classifier.classify(testing_set[i][0])}, Confidence %: {voted_classifier.confidence(testing_set[i][0])*100}')
+
